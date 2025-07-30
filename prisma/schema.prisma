@@ -1,0 +1,93 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  tickets   Ticket[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Theater {
+  id        String          @id @default(cuid())
+  name      String
+  location  String
+  seats     Seat[]
+  schedules MovieSchedule[]
+}
+
+model Seat {
+  id           String            @id @default(cuid())
+  row          String
+  number       Int
+  theaterId    String
+  theater      Theater           @relation(fields: [theaterId], references: [id])
+  reservations SeatReservation[]
+  Ticket       Ticket[]
+}
+
+model Movie {
+  id          String          @id @default(cuid())
+  title       String
+  genre       String
+  durationMin Int
+  description String
+  schedules   MovieSchedule[]
+  createdAt   DateTime        @default(now())
+}
+
+model MovieSchedule {
+  id           String            @id @default(cuid())
+  movieId      String
+  movie        Movie             @relation(fields: [movieId], references: [id])
+  theaterId    String
+  theater      Theater           @relation(fields: [theaterId], references: [id])
+  showTime     DateTime
+  reservations SeatReservation[]
+  tickets      Ticket[]
+}
+
+model SeatReservation {
+  id         String            @id @default(cuid())
+  seatId     String
+  seat       Seat              @relation(fields: [seatId], references: [id])
+  scheduleId String
+  schedule   MovieSchedule     @relation(fields: [scheduleId], references: [id])
+  status     ReservationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+}
+
+model Ticket {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  scheduleId      String
+  schedule        MovieSchedule @relation(fields: [scheduleId], references: [id])
+  seatId          String
+  seat            Seat          @relation(fields: [seatId], references: [id])
+  paymentStatus   PaymentStatus @default(PENDING)
+  stripeSessionId String?
+  createdAt       DateTime      @default(now())
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
