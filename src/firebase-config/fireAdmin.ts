@@ -5,3 +5,4 @@ import serviceAccount from "./firebase-service-account.json.json"; // adjust pat
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as ServiceAccount),
 });
+export default admin;
